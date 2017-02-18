@@ -23,7 +23,7 @@ complaint <- read.csv(complaintFile) %>%
            final_finding)
 colnames(complaint) <- gsub('.', '_', colnames(complaint), fixed = TRUE)
 fname <- file.path("..", "data", "toy.complaint_data_cleaned.csv")
-write.csv(officers, file = fname)
+write.csv(complaint, file = fname)
 head(complaint)
 
 officers <- read.csv(officerFile) %>%
