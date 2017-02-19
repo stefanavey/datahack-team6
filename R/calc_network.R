@@ -21,7 +21,7 @@
 #' ##    1     2            1
 #' ##    1     3            1
 #' ##    2     3            1
-
+library(tidyverse)
 calc_network <- function(x, group, indicator) {
     .comat <- function(x) {
         ## Creates all pairwise combinations of a vector
@@ -47,8 +47,12 @@ calc_network <- function(x, group, indicator) {
         mutate(co = map(data, .comat)) %>%
         unnest(co) %>%
         group_by(X1, X2) %>%
-        count %>%
-        ungroup
+        count
 
     return(y)
 }
+
+Rob <- calc_network(complaints0913, group = "crid", indicator = "officer_id")
+
+
+
