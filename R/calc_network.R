@@ -28,7 +28,7 @@ calc_network <- function(x, group, indicator) {
         ## coming from a `data.frame` column
         ## and return as data.frame
         uni <- x %>% unlist %>% sort %>% unique
-        self <- data.frame(X1 = uni, X2 = uni)        
+        self <- data.frame(X1 = uni, X2 = uni)
 
         if (nrow(self) == 1) {
             return(self)
@@ -47,12 +47,13 @@ calc_network <- function(x, group, indicator) {
         mutate(co = map(data, .comat)) %>%
         unnest(co) %>%
         group_by(X1, X2) %>%
-        count
+        count %>%
+        ungroup
 
     return(y)
 }
 
-Rob <- calc_network(complaints0913, group = "crid", indicator = "officer_id")
+## Rob <- calc_network(complaints0913, group = "crid", indicator = "officer_id")
 
 
 

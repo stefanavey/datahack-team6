@@ -6,47 +6,20 @@
 ## Packages ##
 ##############
 library(tidyverse)
+library(lubridate)
 library(openxlsx)
+library(aveytoolkit)
 options(stringsAsFactors = FALSE)
 
 ######################
 ## Read in the data ##
 ######################
 dataDir <- file.path("..", "data")
-complaintFile <- file.path(dataDir, "toy.complaint_data.csv")
-officerFile <- file.path(dataDir, "toy.officer_data.csv")
+complaintFile <- file.path(dataDir, "toy.complaint_data_cleaned.csv")
+officerFile <- file.path(dataDir, "toy.officer_data_cleaned.csv")
 
-complaints <- read.csv(complaintFile) %>%
-    filter(!is.na(complaintcategory)) %>%
-    separate(col = incident_date,
-             into = c("incident_date", "incident_time"), sep = '  ') %>%
-    separate(col = complaintcategory,
-             into = c("complaint_category", "complaint_name"),
-             sep = '-', extra = "merge") %>%
-    rename(final_finding = finalfinding) %>%
-    select(crid, officer_id, incident_date, incident_time,
-           beat_2012_geocoded, complaint_category, complaint_name,
-           final_finding)
-colnames(complaints) <- gsub('.', '_', colnames(complaints), fixed = TRUE)
-head(complaints)
-
-officers <- read.csv(officerFile) %>%
-    select(-matches("^X")) %>%
-    select(officer_id, first.name, last.name,
-           appointed.date, race, gender, birth.year, age,
-           rank, primary, secondary, tertiary)
-colnames(officers) <- gsub('.', '_', colnames(officers), fixed = TRUE)
-fname <- file.path("..", "data-raw", "toy.officer_data_cleaned.csv")
-write.csv(officers, file = fname)
-
-## allegationsFile <- file.path(dataDir, "Master Database 12-7-15 vF_allegations.csv")
-## allegations <- read.csv(allegationsFile) %>%
-##     select(-matches("^X")) %>%
-##     select(-value, -recc_finding, -recc_outcome,
-##            -final_finding, -final_outcome) %>%
-##     mutate(incident_date = ifelse(incident_date == "", " ", incident_date)) %>%
-##     separate(col = incident_date, into = c("incident_date", "incident_time"),
-##              sep = ' ')
+complaints <- read.csv(complaintFile, row.names = 1)
+officers <- read.csv(officerFile)
 
 ##########################
 ## Explore the officers ##
@@ -70,17 +43,57 @@ summary(complaints)
 ## Distribution of complaints by officer
 plotDat <- complaints %>%
     filter(!is.na(officer_id)) %>%
-    group_by(officer_id) %>%
-    summarize(NumberOfComplaints = length(unique(crid)))
+    separate(incident_date, into = c("Day", "Month", "Year"), sep = '-') %>%
+    group_by(officer_id, Year) %>%
+    summarize(NumberOfComplaints = length(unique(crid))) %>%
+    filter(Year == "2015") %>%
+    full_join(officers[,"officer_id", drop =FALSE])
+plotDat$NumberOfComplaints[is.na(plotDat$NumberOfComplaints)] <- 0
+
+png(file.path("..", "graphs", "NumberOfComplaintsPerOfficer_year=2015.png"))
 ggplot(plotDat, aes(x = NumberOfComplaints)) +
     geom_histogram() +
+    scale_y_log10() +
+    annotation_logticks(sides = "l") +
     ylab("Number of Officers") +
-    xlab("Number of Complaints")
+    xlab("Number of Complaints") +
+    ggtitle("Number of Complaints per Officer in 2015") +
+    getBaseTheme()
+dev.off()
 
-## What is the difference between result and outcome_edit?
-complaints %>%
-    select(crid, officer_id, result, outcome_edit) %>%
-    filter(result != outcome_edit) %>%
-    tail(30)
+## How many officers have at least 1 complaint in each year
+complaints <- complaints %>%
+    mutate(incident_date = as.Date(incident_date, "%d-%B-%Y"))
 
-## Distribution of complaints by date
+## What is the date range
+range(complaints$incident_date)
+## "2009-01-01" to "2016-06-16"
+
+## What is the distribution of number of complaints over the years?
+plotDat <- complaints %>%
+    separate(incident_date, into = c("Year", "Month", "Day"), sep = '-') %>%
+    ## filter(incident_date < "2010-01-01") %>%
+    group_by(Year, officer_id) %>%
+    summarize(numComplaints = sum(length(unique(crid)))) %>%
+    ## full_join(officers[,"officer_id",drop=FALSE]) %>%
+    mutate(numComplaints = ifelse(is.na(numComplaints), 0, numComplaints))
+
+ggplot(plotDat, aes(x = numComplaints)) +
+    geom_histogram() +
+    facet_grid(Year ~ .)
+
+## What are the top 20 complaint categories?
+plotDat <- complaints %>%
+    group_by(complaint_name) %>%
+    summarize(count = n()) %>%
+    top_n(20, count) %>%
+    arrange(count) %>%
+    mutate(complaint_name = factor(complaint_name, levels = unique(complaint_name)))
+
+pdf(file.path("..", "graphs", "ComplaintCategories_top=20.pdf"))
+ggplot(plotDat, aes(x = complaint_name, y = count)) +
+    xlab("Complaint Name") +
+    ylab("Number of Complaints") +
+    geom_bar(stat = "identity") +
+    coord_flip()
+dev.off()
