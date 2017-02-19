@@ -34,42 +34,88 @@ types <- officer %>%
     select(-appointed_date) %>%
     map(class) %>% unlist %>% as.character
 types <- ifelse(types == "character", "char", types)
+types <- ifelse(types == "integer", "numeric", types)
 
 ## Assign attributes + defaults
 for (i in seq_along(cols)) {
     g <- initNodeAttribute(graph = g,
                       attribute.name = cols[i],
                       attribute.type = types[i],
-                      default.value = NA)
+                      default.value = ifelse(types[i] == "char",
+                                             "unspecified", 0))
 }
 
 ## Add node data
-for (property in cols) {
+for (i in seq_along(cols)) {
+
+    dat <- officer %>% select_(cols[i]) %>% unlist
+
+    if (types[i] == "char") {
+        dat <- as.character(dat)
+    } else {
+        dat <- as.numeric(dat)
+    }
+    
     nodeData(g,
-             n = as.character(officer$officer_id), # node names
-             attr = property) <-
-        officer %>% select_(property) %>% unlist 
+             n = as.character(officer$officer_id), 
+             attr = cols[i]) <- dat
+
 }
 
 
 ## -----------------------------------------------------------------
 ## Calculate Edges
-edgelist <- calc_network(complaint %>% head, group = "crid", indicator = "officer_id")
+edgelist <- calc_network(complaint, group = "crid", indicator = "officer_id") 
 colnames(edgelist) <- c("officer_id.1", "officer_id.2", "complaints")
 
-g <- addEdge(graph = g,
-        from = as.character(edgelist$officer_id.1),
-        to = as.character(edgelist$officer_id.2))
-##        weights = rep(1, nrow(edgelist)))
+edgelist <- head(edgelist)
+
+g <- initEdgeAttribute(graph = g, attribute.name = 'complaints',
+                       attribute.type='numeric',
+                       default.value=0)
 
 
+for (i in 1:nrow(edgelist)) {
+    from <- as.character(edgelist$officer_id.1[i])
+    to <- as.character(edgelist$officer_id.2[i])                        
+    g <- addEdge(graph = g, from = from, to = to)
+    edgeData(g, from, to, "complaints") <- edgelist$complaints[i]
+}
 
+##     g <- addEdge(graph = g,
+##         from = as.character(edgelist$officer_id.1),
+##         to = as.character(edgelist$officer_id.2))
+## ##        weights = rep(1, nrow(edgelist)))
 
 ## -----------------------------------------------------------------
 ## Send to Cytoscape
 
-cw <- CytoscapeWindow("officers", overwrite=TRUE)
+cw <- CytoscapeWindow("officers3",
+                      graph = g,
+                      overwrite=TRUE)
 cw@graph <- g
 displayGraph(cw) 
 
 edgeNames(g)
+
+
+
+g <- graph::addEdge ('A', 'B', g)
+g <- graph::addEdge ('B', 'C', g)
+g <- graph::addEdge ('C', 'A', g)
+
+edgeData (g, 'A', 'B', 'edgeType') <- 'phosphorylates'
+edgeData (g, 'B', 'C', 'edgeType') <- 'promotes'
+edgeData (g, 'C', 'A', 'edgeType') <- 'indirectly activates'
+    cw@graph <- g
+    displayGraph (cw)
+
+
+
+
+
+edgeData (g, 'A',
+edgeData (g, 'B',
+edgeData (g, 'C',
+    cw@graph <- g
+    displayGraph (cw)

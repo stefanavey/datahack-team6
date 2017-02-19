@@ -47,7 +47,8 @@ calc_network <- function(x, group, indicator) {
         mutate(co = map(data, .comat)) %>%
         unnest(co) %>%
         group_by(X1, X2) %>%
-        count
+        count %>%
+        ungroup
 
     return(y)
 }
