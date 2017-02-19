@@ -7,8 +7,8 @@ options(stringsAsFactors = FALSE)
 ######################
 ## Read in the data ##
 ######################
-complaintFile <- "toy.complaint_data.csv"
-officerFile <- "toy.officer_data.csv"
+complaintFile <- "data-raw/toy.complaint_data.csv"
+officerFile <- "data-raw/toy.officer_data.csv"
 
 getDistrict <- function(beats) {
     beats <- as.character(beats)
@@ -30,7 +30,7 @@ complaint <- read.csv(complaintFile) %>%
 colnames(complaint) <- gsub('.', '_', colnames(complaint), fixed = TRUE)
 head(complaint)
 
-fname <- file.path("..", "data", "toy.complaint_data_cleaned.csv")
+fname <- file.path("data", "toy.complaint_data_cleaned.csv")
 write.csv(complaint, file = fname)
 
 officers <- read.csv(officerFile) %>%
@@ -40,6 +40,6 @@ officers <- read.csv(officerFile) %>%
            rank, primary, secondary, tertiary)
 colnames(officers) <- gsub('.', '_', colnames(officers), fixed = TRUE)
 
-fname <- file.path("..", "data", "toy.officer_data_cleaned.csv")
+fname <- file.path("data", "toy.officer_data_cleaned.csv")
 write.csv(officers, file = fname)
 
