@@ -86,11 +86,11 @@ ggplot(plotDat, aes(x = numComplaints)) +
 plotDat <- complaints %>%
     group_by(complaint_name) %>%
     summarize(count = n()) %>%
-    top_n(20, count) %>%
+    top_n(15, count) %>%
     arrange(count) %>%
     mutate(complaint_name = factor(complaint_name, levels = unique(complaint_name)))
 
-pdf(file.path("..", "graphs", "ComplaintCategories_top=20.pdf"))
+png(file.path("..", "graphs", "ComplaintCategories_top=15.png"))
 ggplot(plotDat, aes(x = complaint_name, y = count)) +
     xlab("Complaint Name") +
     ylab("Number of Complaints") +
