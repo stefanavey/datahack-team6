@@ -1,11 +1,22 @@
-# README #
+# Datahack @ Yale 2017 #
+
+This code was developed in 2 days at [Datahack@Yale 2017](http://datahack.yale.edu/) and won 2nd place overall out of 15 teams.
 
 ## Yale Policy Lab Challenge ##
 
+The challenge from the [Yale Policy Lab](http://isps.yale.edu/programs/policy-lab) and the [Justice Collaboratory](https://www.law.yale.edu/justice-collaboratory-0) was to better understand police misconduct by analyzing public data on pollice officer complaints from the Chicago Police Department collected by the [invisible institute](https://github.com/invinst/chicago-police-data).
 
-## Toy Data dictionary ##
+Part of the challenge was to use statistical modeling to predict future police misconduct while the other part was effectively visualizing the network of complaints to aid in interpretation.
 
-### officers
+### Data Visualization ###
+
+We visualized the co-complaint network where each officer is a node and they are linked if they were implicated in the same complaint ([click here to view in browser](https://rawgit.com/stefanavey/datahack-team6/master/graphs/D3_LM.html)).
+
+
+### Data dictionary ###
+
+[`data/toy.officer_data_cleaned.csv`](https://github.com/stefanavey/datahack-team6/tree/master/data/toy.officer_data_cleaned.csv)
+
 - **officer_id**
 - **first_name**
 - **last_name**
@@ -19,7 +30,8 @@
 - **secondary**
 - **tertiary**
 
-### complaints
+[`data/toy.complaint_data_cleaned.csv`](https://github.com/stefanavey/datahack-team6/tree/master/data/toy.complaint_data_cleaned.csv)
+
 - **crid** - complaint record ID
 - **officer_id** - the officer ID
 - **incident_date** - date of incident
